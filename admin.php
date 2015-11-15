@@ -23,9 +23,6 @@ if (isset($_SESSION['user']) && (!$_SESSION['user'] === "admin" || strpos($_SESS
 <body>
 
 <?php
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(-1);
 
 $ldap_host = "";
 $ldap_dn = "";
@@ -33,8 +30,9 @@ $site_title = "";
 $site_admin_username = "";
 $site_admin_password = "";
 $site_photo_url = "";
+$site_logo_url = "";
 function get_site_admin() {
-        global $site_title, $site_admin_username, $site_admin_password, $site_photo_url;
+        global $site_title, $site_admin_username, $site_admin_password, $site_photo_url,$site_logo_url;
         $servername = "127.0.0.1";
         $username = "who_what";
         $password = "who_what";
@@ -65,6 +63,10 @@ function get_site_admin() {
 			if ($row["configType"] == "site_photo_url") {
 				$site_photo_url = $row["configValue"];
 			}
+                        if ($row["configType"] == "site_logo_url") {
+                                $site_logo_url = $row["configValue"];
+                        }
+
                 }
         } else {
                 echo "0 results";
@@ -118,10 +120,10 @@ function get_ldap_settings() {
 get_ldap_settings();
 get_site_admin();
 ?>
-<div class="container">
 <?php
 include("header.php");
 ?>
+<div class="container">
 <h1>Configuration</h1>
 <h2>Site Administration</h2>
 <hr />
@@ -132,7 +134,8 @@ include("header.php");
 	echo 'Site Admin Password: <input type="password" value="'.$site_admin_password.'" id="siteAdminPassword" name="siteAdminPassword" class="form-control" placeholder="'.$site_admin_password.'" required autofocus/>';
 	echo 'Confirm Password: <input type="password" value="'.$site_admin_password.'" id="conf_siteAdminPassword" name="conf_siteAdminPassword" class="form-control" placeholder="'.$site_admin_password.'" required autofocus/>';
 
-	echo 'User Photo URL: <input type="text" value="'.$site_photo_url.'" id="site_photo_url name="site_photo_url" class="form-control" placeholder="'.$site_photo_url.'" required autofocus/>';
+	echo 'User Photo URL: <input type="text" value="'.$site_photo_url.'" id="site_photo_url" name="site_photo_url" class="form-control" placeholder="'.$site_photo_url.'" required autofocus/>';
+	echo 'Site Logo URL: <input type="text" value="'.$site_logo_url.'" id="site_logo_url" name="site_logo_url" class="form-control" placeholder="'.$site_logo_url.'" required autofocus/>';
 
 	echo '</div>';
 	echo '<div class="form-group">';

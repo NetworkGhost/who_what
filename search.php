@@ -5,30 +5,34 @@ ldap_settings();
 function addTagsForm($tagFor) {
         $returns = "";
         #$returns .= '<form method="post" name="'.$tagFor.'_tag_form" id="search_form" class="form_class" style="padding-top: 10px">';
-        $returns .= '<div style="padding-left: 0px; padding-top: 15px; padding-bottom: 15px; text-align: center; " class="row bg-success">';
-
-        $returns .= '<div class="col-md-4">';
-        $returns .= '    <input id="'.$tagFor.'_tag_Field" type="text" class="form-control" placeholder="Add Tag">';
+	$returns .= '<div style="padding-left: 0px;" class="showTagForm" id="'.$tagFor.'">';
+        $returns .= '<a  type="button" style="cursor: pointer;" class="';
+        $returns .= 'btn-default btn-xs">';
+        $returns .= '<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Add Tag</a> ';
+	$returns .= '</div>';
+        $returns .= '<div class="row" id="'.$tagFor.'_tag_container" style="padding-left: 10px; padding-top: 5px; padding-bottom: 5px; text-align: center; background-color: #008AE6;display: none; " >';
+        $returns .= '<div class="col-md-4" style="background-color: #008AE6;">';
+        $returns .= '    <input id="'.$tagFor.'_tag_Field" type="text" style="font-size: 11px;" class="form-control input-sm" placeholder="Add Tag">';
         $returns .= '</div>';
-	$returns .= '<div class="col-md-3">';
-	$returns .= '<select id="'.$tagFor.'_tag_type" style="padding-right: 2px" name="drop_type">';
+	$returns .= '<div class="col-md-3" style="background-color: #008AE6;">';
+	$returns .= '<select id="'.$tagFor.'_tag_type" style="padding-right: 2px;font-size: 11px;" name="drop_type">';
 	$returns .= '  <option value="role">Role</option>';
 	$returns .= '  <option value="project">Project/Initiative</option>';
 	$returns .= '  <option value="hobby">Hobby/Interest</option>';
 	$returns .= '</select>';
 	$returns .= '</div>';
-        $returns .= '<div class="col-md-1">';
+        $returns .= '<div class="col-md-1" style="background-color: #008AE6;">';
         $returns .= '    <button id="'.$tagFor.'" type="button" class="btn btn-default btn-sm submitTag">';
         $returns .= '    <span class="glyphicon glyphicon-tag"></span> Add Tag';
         $returns .= '    </button>';
         $returns .= '</div>';
         $returns .= '</div>';
-
+	$returns .= '<br />';
         #$returns .= '</div>';
         #$returns .= '</form>';
         return $returns;
 }
-function get_tags($userID) {
+function get_tags($userID,$searchString) {
         $servername = "127.0.0.1";
         $username = "who_what";
         $password = "who_what";
@@ -44,40 +48,54 @@ function get_tags($userID) {
         $sql = "SELECT * from tbl_tags WHERE userID = '".$userID."' AND tagType = 'role'";
         $result = $conn->query($sql);
         $returns = "";
-                $returns .= '<div style="text-align:left;" class="row">';
-                $returns .= '<h5>Roles</h5>';
+                $returns .= '<div style="text-align:left;" >';
+		$returns .= '<div style="padding-top: 5px; font-size: 11px;" >';
+                $returns .= '<b>Roles: </b>';
                 if ($result->num_rows >= 1) {
-                while($row = $result->fetch_assoc()) {
-                        $returns .= '<button  type="button" class="btn ';
-                        if ($row["tagType"] === "role") {
-                                $returns .= 'btn-primary btn-xs">';
-                        }
-                $returns .= $row["tag"].'</button> ';
+                	while($row = $result->fetch_assoc()) {
+                        	$returns .= '<a  type="button" style="cursor: pointer; font-size: 11px;" class="button_tag ';
+                		if ($row["tagType"] === "role" && stripos($row["tag"],$searchString) !== false) {
+                        		$returns .= 'btn-success btn-xs">';
+                		} elseif ($row["tagType"] === "role") {
+                        		$returns .= 'btn-primary btn-xs">';
+                		}
+                		$returns .= $row["tag"].'</a> ';
+                	}
                 }
-                }
-                $returns .= '<h5>Projects</h5>';
+		$returns .= '</div>';
+		$returns .= '<div style="padding-top: 5px; font-size: 11px;" >';
+                $returns .= '<b>Projects/Workstreams: </b>';
                 $sql = "SELECT * from tbl_tags WHERE userID = '".$userID."' AND tagType = 'project'";
                 $result = $conn->query($sql);
                 if ($result->num_rows >= 1) {
-                while($row = $result->fetch_assoc()) {
-                $returns .= '<button id="tag_button"  type="button" class="btn ';
-                $returns .= 'btn-default btn-xs">';
-                $returns .= $row["tag"].'</button> ';
-                }
+                        while($row = $result->fetch_assoc()) {
+                                $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_tag ';
+                                if ($row["tagType"] === "project" && stripos($row["tag"],$searchString) !== false) {
+                                        $returns .= 'btn-success btn-xs">';
+                                } elseif ($row["tagType"] === "project") {
+                                        $returns .= 'btn-warning btn-xs">';
+                                }
+                                $returns .= $row["tag"].'</a> ';
+                        }
                 }
 
-                $returns .= '<h5>Hobbies/Interests</h5>';
+                $returns .= '</div>';
+		$returns .= '<div style="padding-top:5px ; font-size: 11px;">';
+                $returns .= '<b style="padding-top: 10px;">Hobbies/Interests: </b>';
                 $sql = "SELECT * from tbl_tags WHERE userID = '".$userID."' AND tagType = 'hobby'";
                 if ($result->num_rows >= 1) {
                 $result = $conn->query($sql);
                 while($row = $result->fetch_assoc()) {
-                $returns .= '<button type="button" class="btn ';
-                if ($row["tagType"] === "hobby") {
+                $returns .= '<a  type="button" style="cursor: pointer; font-size: 11px;" class="button_tag ';
+		if ($row["tagType"] === "hobby" && stripos($row["tag"],$searchString) !== false) {
+		        $returns .= 'btn-success btn-xs">'; 
+                } elseif ($row["tagType"] === "hobby") {
                         $returns .= 'btn-warning btn-xs">';
                 }
-                $returns .= $row["tag"].'</button> ';
+                $returns .= $row["tag"].'</a> ';
                 }
                 }
+		$returns .= '</div>';
                 $returns .= '</div>';
         return $returns;
         $conn->close();
@@ -103,7 +121,7 @@ function topTags() {
         if ($result->num_rows >= 1) {
                 $returns .= '<div style="text-align:left;" class="row">';
                 while($row = $result->fetch_assoc()) {
-                $returns .= '<button id="button_tag_'.$row["tag"].'" name="'.$row["tag"].'" style="padding: 5px" type="button" class="btn btn-default ">'.$row["tag"].'</button> ';
+                $returns .= '<button id="button_tag_'.$row["tag"].'" name="'.$row["tag"].'" type="button" class="btn btn-default btn-xs">'.$row["tag"].'</button> ';
                 }
                 $returns .= '</div>';
         return $returns;
@@ -131,16 +149,20 @@ function searchTags($user, $password, $searchString, $type) {
         $returns = "";
         if ($result->num_rows >= 1) {
                 // output data of each row
+		$returns .= "<div style='padding-bottom: 5px;'>";
+		$returns .= "<b>".$result->num_rows."</b> users found for tag \"".$searchString."\"";
+		$returns .= "</div>";
                 while($row = $result->fetch_assoc()) {
-                        $returns .= search($user,$password, $row['userID'],'search');
+                        $returns .= search($user,$password, $row['userID'],'search',$searchString);
                 }
         } else {
-                echo "0 results";
+		$returns .= search($user,$password,$searchString,'search',$searchString);
+                #echo "0 results";
         }
         $conn->close();
         return $returns;
 }
-function search($user, $password, $searchString,$type) {
+function search($user, $password, $searchString,$type,$searchString2) {
         global $ldap_host, $ldap_dn, $ldap_username, $ldap_passsword, $ldap_filter,$user_photo_url;
         ldap_settings();
         if(empty($user) || empty($password)) return false;
@@ -154,58 +176,55 @@ function search($user, $password, $searchString,$type) {
                 $attr = array("memberof");
                 $result = ldap_search($ldap, $ldap_dn, $filter) or exit("Unable to search LDAP server");
                 $entries = ldap_get_entries($ldap, $result);
+		#var_dump($entries);
                 ldap_unbind($ldap);
                 $access = 1;
                 $returns = "";
                 if ($access != 0) {
-                                $returns .= '<div class="row bg-success" style="padding-top: 15px; padding-bottom: 15px;">';
-                                $returns .= '<div class="col-md-1">';
-                                $returns .= '<img height="30" width="30" src="jabber.png" />';
-                                $returns .= '</div>';
-                                $returns .= '<div class="col-md-1">';
-                                $returns .= '<img height="30" width="30" src="spark.png" />';
-                                $returns .= '</div>';
-                                $returns .= '</div>';
                         for ($i=0; $i<$entries["count"]; $i++) {
-                                $returns .= '<div class="row" style="padding-top: 10px">';
-                                $returns .= '<div class="col-md-1">';
-                                $returns .= '<input type="radio" name="jabber_all" value="all">';
-                                $returns .= '</div>';
-
-                                $returns .= '<div class="col-md-1"><img src="'.$user_photo_url.''.$entries[$i]["uid"][0].'" />';
-                                $returns .= '<div class="row" style="padding-top: 10px">';
-                                $returns .= '<div style="text-align:left;" class="col-md-1">';
-                                $returns .= '<img  height="30" width="30" src="linkedin.png" style="padding-right: 5px;" />';
-                                $returns .= '</div>';
-                                $returns .= '<div style= "text-align:left;" class="col-md-1">';
-                                $returns .= '<img  height="30" width="30" src="linkedin.png" style="padding-right: 5px;" />';
-                                $returns .= '</div>';
-                                $returns .= '<div style= "text-align:left;" class="col-md-1">';
-                                $returns .= '<img  height="30" width="30"  src="twitter.png" />';
-                                $returns .= '</div>';
-                                $returns .= '</div>';
-                                $returns .= '</div>';
-                                $returns .= '<div style "text-align:left;" class="col-md-2">';
-                                $returns .= '<p><h4>'.$entries[$i]["cn"][0].'</h4></p>';
-                                $returns .= '<p><h5>'.$entries[$i]["title"][0].'</h5></p>';
-                                $returns .= '</div>';
-                                $returns .= '<div class="col-md-8">';
-                                $returns .= '<div style="padding-bottom: 15px;" id="'.$entries[$i]["uid"][0].'_tags">';
-                                $returns .= get_tags($entries[$i]["uid"][0]);
+				$returns .= '<tr style="border-bottom: 1pt solid #A9A9A9;">';	
+				$returns .= '<td style="vertical-align: top;" width="50px">';
+                                $returns .= '<img style="padding-top:3px;" src="'.$user_photo_url.''.$entries[$i]["uid"][0].'" />';
+				$returns .= '</td>';
+				$returns .= '<td style="vertical-align: top;" width="150px">';
+	                        $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_tag ';
+              	                $returns .= 'btn-default btn-xs">';
+                		$returns .= $entries[$i]["cn"][0].'</a> ';
+				$returns .= '<br />';
+                                $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_title ';
+                                $returns .= 'btn-default btn-xs">';
+                                $returns .= $entries[$i]["title"][0].'</a> ';
+				$returns .= '<br />';
+                                $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_phone" href="tel:';
+				$returns .= $entries[$i]["telephonenumber"][0];
+				$returns .=  '" ';
+                                $returns .= 'btn-default btn-xs">';
+                                $returns .= $entries[$i]["telephonenumber"][0].'</a> ';
+                                $returns .= '<br />';
+                                $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_email" href="mailto:';
+                                $returns .= $entries[$i]["mail"][0];
+                                $returns .=  '" ';
+                                $returns .= 'btn-default btn-xs">';
+                                $returns .= $entries[$i]["mail"][0].'</a> ';
+                                $returns .= '<br />';
+				$returns .= '</td>';
+				$returns .= '<td>';
+                                $returns .= '<div style="padding-bottom: 5px;" id="'.$entries[$i]["uid"][0].'_tags">';
+                                $returns .= get_tags($entries[$i]["uid"][0],$searchString2);
                                 #$returns .= '<p>'.var_dump($entries[$i]).'</p>';
                                 $returns .= '</div>';
-
                                 #if ($type == 'tags') {
                                 $returns .= addTagsForm($entries[$i]["uid"][0]);
                                 #}
-                                $returns .= '</div>';
-                                $returns .= '</div>';
-                                $returns .= '<hr />';
+				$returns .= '</td>';
+				$returns .= '</tr>';
                         }
                         return $returns;
                 } else {
-                        // user has no rights
-                        return "Results not found";
+                $returns .= "<div style='padding-bottom: 5px;'>";
+                $returns .= "<b>0</b> users found";
+                $returns .= "</div>";
+
                 }
         } else {
                 // invalid name or password
@@ -232,9 +251,13 @@ if (isset($_POST['type'])) {
 };
 if (isset($_POST['searchString'])){
 	if ($type == 'tags') {
-		$results = searchTags($ldap_username,$ldap_password,$search_string,$type);
+		$results = '<table style="width: 100%">';
+		$results .= searchTags($ldap_username,$ldap_password,$search_string,$type);
+		$results .= '</table>';
 	} else {
-		$results = search($ldap_username,$ldap_password,$search_string,$type);
+		$results = '<table style="width: 100%">';
+		$results .= search($ldap_username,$ldap_password,$search_string,$type);
+		$results .= '</table>';
 	}
 }
 echo $results;

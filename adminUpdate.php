@@ -3,8 +3,6 @@ session_start();
 if (isset($_SESSION['user']) && (!$_SESSION['user'] === "admin" || strpos($_SESSION['user'],"joe") < 0)) {
         header("Location: index.php");
         die();
-
-
 }
 ?>
 
@@ -12,6 +10,9 @@ if (isset($_SESSION['user']) && (!$_SESSION['user'] === "admin" || strpos($_SESS
 
 $site_title = "";
 $site_admin_username = "";
+$site_admin_password = "";
+$site_photo_url = "";
+$site_logo_url = "";
 $ldap_host = "";
 $ldap_dn = "";
 if (isset($_POST['siteTitle'])) {
@@ -26,9 +27,20 @@ if (isset($_POST['ldapServer'])) {
 if (isset($_POST['ldapDN'])) {
         $ldap_dn = $_POST['ldapDN'];
 };
+if (isset($_POST['siteAdminPassword'])) {
+	$site_admin_password = $_POST['siteAdminPassword'];
+};
+if (isset($_POST['sitePhotoURL'])) {
+	$site_photo_url = $_POST['sitePhotoURL'];
+};
+if (isset($_POST['siteLogoURL'])) {
+        $site_logo_url = $_POST['siteLogoURL'];
+};
+
+
 
 function update_site_admin() {
-        global $site_title, $site_admin_username;
+        global $site_title, $site_admin_username, $site_admin_password, $site_photo_url, $site_logo_url;
         $servername = "127.0.0.1";
         $username = "who_what";
         $password = "who_what";
@@ -50,6 +62,27 @@ function update_site_admin() {
 	}
 	$sql = "UPDATE tbl_configuration SET configValue = '".$site_admin_username."' WHERE configType = 'site_admin_username'";
 	$result = $conn->query($sql);
+        if ($result === TRUE) {
+                echo "Update Successful";
+        } else {
+                echo "Update Failed";
+        }
+        $sql = "UPDATE tbl_configuration SET configValue = '".$site_admin_password."' WHERE configType = 'site_admin_password'";
+        $result = $conn->query($sql);
+        if ($result === TRUE) {
+                echo "Update Successful";
+        } else {
+                echo "Update Failed";
+        }
+        $sql = "UPDATE tbl_configuration SET configValue = '".$site_photo_url."' WHERE configType = 'site_photo_url'";
+        $result = $conn->query($sql);
+        if ($result === TRUE) {
+                echo "Update Successful";
+        } else {
+                echo "Update Failed";
+        }
+	$sql = "UPDATE tbl_configuration SET configValue = '".$site_logo_url."' WHERE configType = 'site_logo_url'";
+        $result = $conn->query($sql);
         if ($result === TRUE) {
                 echo "Update Successful";
         } else {
