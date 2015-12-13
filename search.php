@@ -1,7 +1,11 @@
 <?php
-
+include("check_login.php");
+//Include authenticate to set ldap variables 
 include("authenticate.php");
 ldap_settings();
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//Adds tag form to page.
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function addTagsForm($tagFor) {
         $returns = "";
         #$returns .= '<form method="post" name="'.$tagFor.'_tag_form" id="search_form" class="form_class" style="padding-top: 10px">';
@@ -32,6 +36,9 @@ function addTagsForm($tagFor) {
         #$returns .= '</form>';
         return $returns;
 }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//Retrieves tags for a given user and search string
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function get_tags($userID,$searchString) {
         $servername = "127.0.0.1";
         $username = "who_what";
@@ -102,6 +109,9 @@ function get_tags($userID,$searchString) {
 
 
 }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//Retrieves top tags from database
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function topTags() {
         $servername = "127.0.0.1";
         $username = "who_what";
@@ -130,6 +140,10 @@ function topTags() {
         }
 
 }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//Searches for tags first from taga database, if no results 
+//then check ldap database for user search match
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function searchTags($user, $password, $searchString, $type) {
         global $ldap_host, $ldap_dn;
         $servername = "127.0.0.1";
@@ -162,21 +176,21 @@ function searchTags($user, $password, $searchString, $type) {
         $conn->close();
         return $returns;
 }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//Searches ldap database for a given user
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function search($user, $password, $searchString,$type,$searchString2) {
-        global $ldap_host, $ldap_dn, $ldap_username, $ldap_passsword, $ldap_filter,$user_photo_url;
+        global $ldap_host, $ldap_dn, $ldap_username, $ldap_password, $ldap_filter,$user_photo_url;
         ldap_settings();
         if(empty($user) || empty($password)) return false;
-        $ldap = ldap_connect($ldap_host);
+        $ldap = ldap_connect('ldaps://'.$ldap_host);
         // verify user and password
+	ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, 7);
         if($bind = @ldap_bind($ldap, $ldap_username, $ldap_password)) {
                 $filter = "(&(|(cn=*$searchString*)(uid=$searchString))".$ldap_filter.")";
-                #return $filter;
-                #$filter = "uid=".$searchString;
-                #$filter = "sn=Danfor*";
                 $attr = array("memberof");
                 $result = ldap_search($ldap, $ldap_dn, $filter) or exit("Unable to search LDAP server");
                 $entries = ldap_get_entries($ldap, $result);
-		#var_dump($entries);
                 ldap_unbind($ldap);
                 $access = 1;
                 $returns = "";
@@ -184,12 +198,17 @@ function search($user, $password, $searchString,$type,$searchString2) {
                         for ($i=0; $i<$entries["count"]; $i++) {
 				$returns .= '<tr style="border-bottom: 1pt solid #A9A9A9;">';	
 				$returns .= '<td style="vertical-align: top;" width="50px">';
-                                $returns .= '<img style="padding-top:3px;" src="'.$user_photo_url.''.$entries[$i]["uid"][0].'" />';
+				if (strlen($user_photo_url) == 0) {
+                                	$returns .= '<img style="padding-top:3px;" width=30 height=35 src="default_user.jpg" />';
+				}
+				else {
+					$returns .= '<img style="padding-top:3px;" src="'.$user_photo_url.''.$entries[$i]["cn"][0].'" />';
+				}
 				$returns .= '</td>';
 				$returns .= '<td style="vertical-align: top;" width="150px">';
 	                        $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_tag ';
               	                $returns .= 'btn-default btn-xs">';
-                		$returns .= $entries[$i]["cn"][0].'</a> ';
+                		$returns .= $entries[$i]["description"][0].'</a> ';
 				$returns .= '<br />';
                                 $returns .= '<a  type="button" style="font-size: 11px;cursor: pointer;" class="button_title ';
                                 $returns .= 'btn-default btn-xs">';
@@ -209,12 +228,12 @@ function search($user, $password, $searchString,$type,$searchString2) {
                                 $returns .= '<br />';
 				$returns .= '</td>';
 				$returns .= '<td>';
-                                $returns .= '<div style="padding-bottom: 5px;" id="'.$entries[$i]["uid"][0].'_tags">';
-                                $returns .= get_tags($entries[$i]["uid"][0],$searchString2);
+                                $returns .= '<div style="padding-bottom: 5px;" id="'.$entries[$i]["cn"][0].'_tags">';
+                                $returns .= get_tags($entries[$i]["cn"][0],$searchString2);
                                 #$returns .= '<p>'.var_dump($entries[$i]).'</p>';
                                 $returns .= '</div>';
                                 #if ($type == 'tags') {
-                                $returns .= addTagsForm($entries[$i]["uid"][0]);
+                                $returns .= addTagsForm($entries[$i]["cn"][0]);
                                 #}
 				$returns .= '</td>';
 				$returns .= '</tr>';
@@ -235,7 +254,6 @@ function search($user, $password, $searchString,$type,$searchString2) {
 
 
 
-
 $site_title = "";
 $site_admin_username = "";
 $ldap_host = "";
@@ -243,6 +261,7 @@ $ldap_dn = "";
 $search_string = "";
 $results = "";
 $type = "";
+//Check post variables search functions
 if (isset($_POST['searchString'])) {
 	$search_string = $_POST['searchString'];
 }; 
@@ -260,5 +279,6 @@ if (isset($_POST['searchString'])){
 		$results .= '</table>';
 	}
 }
+//Output results of searches
 echo $results;
 ?>

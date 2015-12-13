@@ -11,12 +11,11 @@
 </head>
 <body>
 <?php
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(-1);
+//Include authenticate for login functions
 include("authenticate.php");
 
 // check to see if user is logging out
+//if so, unset variables
 if(isset($_GET['out'])) {
 	// destroy session
 	session_unset();
@@ -30,9 +29,7 @@ if(isset($_POST['userLogin'])){
 	// run information through authenticator
 	if(authenticate($_POST['userLogin'],$_POST['userPassword']))
 	{
-		// authentication passed
-		//header("Location: index.php");
-		//die();
+		//Do nothing. Check to see if authentication succeeds.	
 	} else {
 		// authentication failed
 		$error = 1;
@@ -42,9 +39,7 @@ if(isset($_POST['userLogin'])){
 // output error to user
 if (isset($error)) echo "Login failed: Incorrect user name, password, or rights<br /-->";
 
-// output logout success
-//$_SESSION['access'] = 'admin';
-
+//User is authenticated, switch user to index.php
 if (isset($_SESSION['user'])) { 
 	header("Location: index.php");
         die();
@@ -52,7 +47,7 @@ if (isset($_SESSION['user'])) {
 	echo '<div class="container">';
 	echo '<p class="bg-success">Welcome '.$_SESSION['user'].' <a href="./login.php?out=1">logout</a></p>';
 	echo "</div> <!-- /container -->";
-} else {
+} else { //User is not logged in. Present form
 	echo '<div class="container">';
 	if (isset($_GET['out'])) echo '<p class="bg-success">Logout successful</p>';
 	echo '<form class="form-signin" action="login.php" method="post">';
